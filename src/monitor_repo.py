@@ -3,12 +3,14 @@ import time
 from git import Repo, GitCommandError
 import requests
 import logging
+import redis
+import json
+
 from deployment_utils import (
     register_logger,
     CLONED_PROJECT_PATH
 )
 import sys
-from publisher import DataProcessor
 
 
 # Setup logging
@@ -20,7 +22,7 @@ CHECK_INTERVAL = 300  # 5 minutes in seconds
 
 class RepositoryMonitor:
     def __init__(self):
-        self.processor = DataProcessor()
+        self.redis_client = redis.Redis(host='localhost', port=6379)
 
     def clone_repo(self):
         """Clone the repository if it doesn't exist"""
@@ -45,7 +47,6 @@ class RepositoryMonitor:
             logging.error(f"Failed to pull repository: {e}")
             self._publish_status("repo_ready", False, str(e))
 
-
     def check_for_updates(self):
         """Check for updates in the repository"""
         try:
@@ -67,7 +68,7 @@ class RepositoryMonitor:
                     self._publish_status("server_terminated", True)
                     self.pull_repo()
                     return False
-                    
+
                 if response.status_code == 200:
                     logging.info("Server app terminated successfully")
                     self._publish_status("server_terminated", True)
@@ -91,7 +92,7 @@ class RepositoryMonitor:
             "timestamp": time.time(),
             "error": error_msg
         }
-        self.processor.process_data(message)
+        self.redis_client.publish(event_type, json.dumps(message))
 
     def run(self):
         """Main monitoring loop"""

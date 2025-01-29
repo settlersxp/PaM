@@ -2,6 +2,7 @@ import redis
 from typing import Callable
 import json
 
+
 class MessageBroker:
     def __init__(self, host='localhost', port=6379):
         self.redis_client = redis.Redis(host=host, port=port)
@@ -20,5 +21,7 @@ class MessageBroker:
         """Start listening for messages"""
         for message in self.pubsub.listen():
             if message['type'] == 'message':
-                # Process message
-                pass
+                # Get the channel and callback
+                channel = message['channel'].decode('utf-8')
+                # Execute the callback with the message
+                self.pubsub.patterns[channel](message)

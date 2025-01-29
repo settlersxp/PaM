@@ -7,11 +7,14 @@ class NotificationService:
         self.setup_subscriptions()
     
     def setup_subscriptions(self):
-        self.broker.subscribe("Git Clone ok", self.handle_processed_data)
+        self.broker.subscribe("repo_ready", self.handle_processed_data)
     
     def handle_processed_data(self, message):
-        data = json.loads(message['data'])
-        print(f"Notification: Data processing completed: {data}")
+        try:
+            data = json.loads(message['data'].decode('utf-8'))
+            print(f"Notification: Received message: {data}")
+        except Exception as e:
+            print(f"Error processing message: {e}")
     
     def start(self):
         print("Notification service started...")
