@@ -20,7 +20,7 @@ is_windows = platform.system().lower() == "windows"
 venv_folder_name = "venv"
 base_path = os.path.dirname(os.path.abspath(__file__))
 folders = base_path.split(os.sep)
-CLONED_PROJECT_PATH = os.path.join(os.sep, *folders[:-2], "SimpleTradingFramework")
+CLONED_PROJECT_PATH = os.path.join(str.join(os.sep, folders[:-2]), "SimpleTradingFramework")
 
 
 def register_logger(logger_name):
