@@ -47,6 +47,23 @@ class RepositoryMonitor:
             logging.error(f"Failed to pull repository: {e}")
             self._publish_status("repo_ready", False, str(e))
 
+    def stop_server(self):
+        """Stop the server"""
+        try:
+            response = requests.get("http://localhost:3200/shutdown")
+            logging.info(f"Server app termination response: {response}")
+            if response.status_code == 200:
+                logging.info("Server app terminated successfully")
+                self._publish_status("server_terminated", True)
+            else:
+                logging.info("Server app not running")
+                self._publish_status("server_terminated", True)
+            return True
+        except requests.exceptions.ConnectionError:
+            logging.info("Server app not running")
+            self._publish_status("server_terminated", True)
+            return False
+
     def check_for_updates(self):
         """Check for updates in the repository"""
         try:
@@ -61,22 +78,12 @@ class RepositoryMonitor:
             remote_hash = origin.refs.master.commit.hexsha
 
             if current_hash != remote_hash:
-                try:
-                    response = requests.get("http://localhost:3200/shutdown")
-                except requests.exceptions.ConnectionError:
-                    logging.info("Server app not running")
-                    self._publish_status("server_terminated", True)
-                    self.pull_repo()
-                    return False
+                termination_status = self.stop_server()
 
-                if response.status_code == 200:
+                if termination_status:
                     logging.info("Server app terminated successfully")
-                    self._publish_status("server_terminated", True)
-                else:
-                    logging.warning("Server app process not found")
-                    self._publish_status("server_terminated", False)
-
-                self.pull_repo()
+                    
+                    self.pull_repo()
                 return True
 
         except GitCommandError as e:

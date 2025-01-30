@@ -10,6 +10,7 @@ from deployment_utils import (
 )
 from message_broker import MessageBroker
 import json
+from threading import Thread
 
 
 # Setup logging
@@ -45,11 +46,19 @@ class SetupHandler:
             upgrade=True,
             with_pip=True
         )
-        env_builder.create(ENV_PATH_OF_CLONED_PROJECT)
-        pip.main(['install', '-r', os.path.join(CLONED_PROJECT_PATH, 'requirements.txt')])
+
+        def setup_environment():
+            env_builder.create(ENV_PATH_OF_CLONED_PROJECT)
+            pip.main(['install', '-r', os.path.join(CLONED_PROJECT_PATH, 'requirements.txt')])
+
+        # Run setup in a separate thread
+        setup_thread = Thread(target=setup_environment)
+        setup_thread.start()
+        setup_thread.join()
 
         self.publish_setup_status(True)
-        
+        logging.info("Environment setup started in separate thread")
+
     def publish_setup_status(self, success: bool, error_msg: str = None):
         """Publish setup completion status"""
         message = {
