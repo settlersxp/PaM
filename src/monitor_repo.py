@@ -23,7 +23,7 @@ CHECK_INTERVAL = 300  # 5 minutes in seconds
 class RepositoryMonitor:
     def __init__(self):
         self.broker = MessageBroker()
-        
+
     def clone_repo(self):
         """Clone the repository if it doesn't exist"""
         if not os.path.exists(CLONED_PROJECT_PATH):
@@ -111,8 +111,10 @@ class RepositoryMonitor:
             try:
                 if self.check_for_updates():
                     logging.info("Updates applied successfully")
+                    self._publish_status("repo_ready", True)
                 else:
                     logging.info("No updates found")
+                    self._publish_status("repo_ready", False)
 
                 # Wait for next check
                 time.sleep(CHECK_INTERVAL)
