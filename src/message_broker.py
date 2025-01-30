@@ -11,6 +11,7 @@ class MessageBroker:
     def publish(self, channel: str, message: dict):
         """Publish a message to a specific channel"""
         message_str = json.dumps(message)
+        print(f"Publishing message to channel {channel}: {message_str}")
         self.redis_client.publish(channel, message_str)
     
     def subscribe(self, channel: str, callback: Callable):

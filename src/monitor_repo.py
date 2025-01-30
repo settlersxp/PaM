@@ -11,7 +11,7 @@ from deployment_utils import (
     CLONED_PROJECT_PATH
 )
 import sys
-
+from message_broker import MessageBroker
 
 # Setup logging
 logger = register_logger('monitor_repo')
@@ -22,8 +22,8 @@ CHECK_INTERVAL = 300  # 5 minutes in seconds
 
 class RepositoryMonitor:
     def __init__(self):
-        self.redis_client = redis.Redis(host='localhost', port=6379)
-
+        self.broker = MessageBroker()
+        
     def clone_repo(self):
         """Clone the repository if it doesn't exist"""
         if not os.path.exists(CLONED_PROJECT_PATH):
@@ -99,7 +99,7 @@ class RepositoryMonitor:
             "timestamp": time.time(),
             "error": error_msg
         }
-        self.redis_client.publish(event_type, json.dumps(message))
+        self.broker.publish(event_type, message)
 
     def run(self):
         """Main monitoring loop"""

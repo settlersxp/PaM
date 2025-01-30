@@ -1,11 +1,9 @@
 import logging
 import os
-import sys
 from message_broker import MessageBroker
 import json
 from deployment_utils import (
     register_logger,
-    ENV_PATH_OF_CLONED_PROJECT,
     CLONED_PROJECT_PATH
 )
 import time
@@ -48,8 +46,8 @@ class MonitorServer:
             else:  # Unix/Linux
                 file_path = os.path.join(CLONED_PROJECT_PATH, 'run_server.sh')
                 subprocess.run(['bash', file_path], 
-                             check=True, 
-                             cwd=CLONED_PROJECT_PATH)
+                                check=True, 
+                                cwd=CLONED_PROJECT_PATH)
 
             logging.info("Flask server started in separate process")
 
